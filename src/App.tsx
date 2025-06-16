@@ -1,10 +1,41 @@
-import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+import { createMachine, assign } from 'xstate';
+import { useMachine } from '@xstate/react';
+
+type CounterContext = {
+  count: number;
+}
+
+export type CounterEvent = 
+  | { type: 'INCREMENT' }
+  | { type: 'DECREMENT' }
+  | { type: 'RESET' };
+
+export const counterMachine = createMachine({
+  types: {} as {
+    context: CounterContext;
+    events: CounterEvent;
+  },
+  id: 'counterMachine',
+  context: { count: 0 },
+  on: {
+    INCREMENT: {
+      actions: assign({ count: ({ context }) => context.count + 1 })
+    },
+    DECREMENT: {
+      actions: assign({ count: ({ context }) => Math.max(0, context.count - 1) })
+    },
+    RESET: {
+      actions: assign({ count: 0 })
+    }
+  }
+});
 
 function App() {
-  const [count, setCount] = useState(0)
+  // const [count, setCount] = useState(0)
+  const [state, send] = useMachine(counterMachine);
 
   return (
     <>
@@ -18,8 +49,8 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+        <button onClick={() => send({type:'INCREMENT'})}>
+          count is {state.context.count}
         </button>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
